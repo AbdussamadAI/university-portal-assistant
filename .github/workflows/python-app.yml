@@ -20,7 +20,21 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          echo "Setting up git configuration..."
           git config --global user.email "abdussamadidrisali@gmail.com"
           git config --global user.name "AbdussamadAI"
+          
+          echo "Checking if HF_TOKEN is set..."
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::HF_TOKEN is not set. Please add it to your repository secrets."
+            exit 1
+          fi
+          
+          echo "Setting up remote URL..."
           git remote set-url origin https://AbdussamadAI:$HF_TOKEN@huggingface.co/spaces/AbdussamadAI/university-portal-assistant
+          
+          echo "Listing remotes for debugging..."
+          git remote -v
+          
+          echo "Pushing to Hugging Face Space..."
           git push --force origin main
