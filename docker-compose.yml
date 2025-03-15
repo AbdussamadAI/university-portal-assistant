@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    command: streamlit run university_portal_app.py --server.port=8501 --server.address=0.0.0.0

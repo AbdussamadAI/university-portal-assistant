@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import csv
-import pandas as pd
 import re
 import io
 import sys
@@ -9,6 +8,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
+import pandas as pd  # Used for reading CSV files
 
 # Page configuration - must be the first Streamlit command
 st.set_page_config(
@@ -234,40 +234,25 @@ def process_query(query, faqs):
         st.error(f"Error processing query: {e}")
         return save_unanswered_question(query)
 
+# Function to process and display messages
+def process_and_display_message(prompt, faqs):
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    
+    # Display user message
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    
+    # Display assistant response
+    with st.chat_message("assistant"):
+        response = process_query(prompt, faqs)
+        st.markdown(response)
+        
+    # Add assistant response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": response})
+
 # Main UI layout
 def main():
-    # Custom CSS
-    st.markdown("""
-    <style>
-    .main {
-        background-color: #f5f7f9;
-    }
-    .chat-message {
-        padding: 10px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        display: flex;
-        flex-direction: column;
-    }
-    .user {
-        background-color: #e6f7ff;
-        border-left: 5px solid #1890ff;
-    }
-    .bot {
-        background-color: #f6ffed;
-        border-left: 5px solid #52c41a;
-    }
-    .stButton button {
-        width: 100%;
-        border-radius: 20px;
-    }
-    .app-header {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
     # Load FAQs
     faqs = load_faqs()
     
@@ -280,110 +265,35 @@ def main():
     
     # Sidebar
     with st.sidebar:
-        st.image("https://cdn-icons-png.flaticon.com/512/2232/2232688.png", width=150)
-        st.title("University Portal Assistant")
-        st.markdown("---")
+        st.markdown("## About")
+        st.markdown("This chatbot helps with university portal questions.")
+        st.markdown("### Common Questions")
+        if st.button("How do I reset my password?"):
+            process_and_display_message("How do I reset my password?", faqs)
+        if st.button("How do I register for classes?"):
+            process_and_display_message("How do I register for classes?", faqs)
+        if st.button("How do I make a payment?"):
+            process_and_display_message("How do I make a payment?", faqs)
         
-        st.subheader("About")
-        st.markdown("""
-        This assistant helps you navigate the University Portal and answers frequently asked questions about registration, payments, and other portal-related issues.
-        
-        **Powered by OpenAI's GPT-4o model** to provide detailed, helpful responses.
-        """)
-        
-        st.markdown("---")
-        
-        # Show FAQ section in sidebar
-        st.subheader("Common FAQs")
-        
-        # Display a few common FAQs
-        common_faqs = [
-            ("How to reset password?", "Try the default password (umstad@2025)."),
-            ("How to change my name?", "Submit your details at MIS."),
-            ("How to pay school fees?", "Check my catalog in my profile.")
-        ]
-        
-        for question, answer in common_faqs:
-            with st.expander(question):
-                st.write(answer)
-        
-        st.markdown("---")
-        
-        # Admin section - View unanswered questions
-        st.subheader("Admin Section")
-        if st.button("View Unanswered Questions"):
-            try:
-                unanswered_df = pd.read_csv(UNANSWERED_QUESTIONS_FILE)
-                st.dataframe(unanswered_df)
-            except Exception as e:
-                st.error(f"Error loading unanswered questions: {e}")
-                
-        # Add debug toggle
-        st.markdown("---")
-        st.subheader("Debug Options")
-        if st.checkbox("Show Response Debug Info"):
+        # Debug section (hidden in production)
+        with st.expander("Admin/Debug", expanded=False):
             if "debug_info" in st.session_state:
-                st.subheader("Original Query")
-                st.write(st.session_state.debug_info["original_query"])
-                st.subheader("Base Answer (from CSV)")
-                st.write(st.session_state.debug_info["base_answer"])
-                st.subheader("Enhanced Answer (from AI)")
-                st.write(st.session_state.debug_info["enhanced_answer"])
+                st.write("Original Query:", st.session_state.debug_info["original_query"])
+                st.write("Base Answer:", st.session_state.debug_info["base_answer"])
+                st.write("Enhanced Answer:", st.session_state.debug_info["enhanced_answer"])
     
-    # Input field at the top
-    st.subheader("Ask a question about the university portal:")
+    # Chat interface
+    st.markdown("## Conversation:")
     
-    # Use a form for Enter key handling
-    with st.form(key="query_form", clear_on_submit=True):
-        # Input and button in columns
-        col1, col2 = st.columns([5, 1])
-        
-        with col1:
-            query = st.text_input("Query", placeholder="Type your question here...", key="query_input", label_visibility="collapsed")
-        
-        with col2:
-            send_button = st.form_submit_button("Send")
-    
-    # Add a divider between input and chat
-    st.markdown("---")
-    
-    # Process the query when the form is submitted
-    if send_button and query:
-        # Add user message to chat history
-        st.session_state.messages.append({"role": "user", "content": query})
-        
-        # Show spinner while processing
-        with st.spinner("Processing your question..."):
-            # Process the query
-            response = process_query(query, faqs)
-        
-        # Add bot response to chat history
-        st.session_state.messages.append({"role": "bot", "content": response})
-        
-        # Use st.rerun() instead of the deprecated st.experimental_rerun()
-        st.rerun()
-    
-    # Display chat messages from history
-    st.subheader("Conversation:")
-    
-    # If no messages yet, show a placeholder
-    if not st.session_state.messages:
-        st.info("Your conversation will appear here after you ask a question.")
-    
-    # Display the conversation
+    # Display chat messages
     for message in st.session_state.messages:
-        if message["role"] == "user":
-            st.markdown(f'<div class="chat-message user"><strong>You:</strong> {message["content"]}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="chat-message bot"><strong>Assistant:</strong> {message["content"]}</div>', unsafe_allow_html=True)
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
     
-    # Footer
-    st.markdown("---")
-    st.markdown("""
-    <div style="text-align: center; color: #718096; font-size: 0.8rem;">
-        2025 University Portal Assistant | Powered by Agno AI
-    </div>
-    """, unsafe_allow_html=True)
+    # Chat input
+    if prompt := st.chat_input("Ask a question about the university portal..."):
+        process_and_display_message(prompt, faqs)
 
+# Run the app
 if __name__ == "__main__":
     main()
