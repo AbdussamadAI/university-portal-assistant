@@ -2,6 +2,9 @@ import streamlit as st
 import os
 import sys
 
+# App version
+APP_VERSION = "1.0.1"
+
 # Set page config
 st.set_page_config(
     page_title="University Portal Assistant",
@@ -10,7 +13,7 @@ st.set_page_config(
 )
 
 # Display a message while loading
-st.markdown("## 🎓 University Portal Assistant")
+st.markdown(f"## 🎓 University Portal Assistant v{APP_VERSION}")
 st.markdown("Loading application... Please wait.")
 
 # Check for OpenAI API key
