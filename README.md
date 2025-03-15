@@ -5,7 +5,7 @@ colorFrom: blue
 colorTo: indigo
 sdk: streamlit
 sdk_version: 1.32.0
-app_file: app.py
+app_file: minimal_app.py
 pinned: false
 license: mit
 ---
@@ -47,12 +47,12 @@ A Streamlit-based chatbot application that helps university students and staff w
 4. Run the application:
 
    ```bash
-   streamlit run app.py
+   streamlit run minimal_app.py
    ```
 
 ## Files
 
-- `app.py`: Main Streamlit application
+- `minimal_app.py`: Main Streamlit application
 - `university_portal_faqs.csv`: CSV file containing frequently asked questions and answers
 - `unanswered_questions.csv`: CSV file for storing unanswered questions for human follow-up
 
