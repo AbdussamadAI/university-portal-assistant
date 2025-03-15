@@ -1,3 +1,15 @@
+---
+title: University Portal Assistant
+emoji: 🎓
+colorFrom: blue
+colorTo: indigo
+sdk: streamlit
+sdk_version: 1.32.0
+app_file: app.py
+pinned: false
+license: mit
+---
+
 # University Portal Assistant
 
 A Streamlit-based chatbot application that helps university students and staff with portal-related queries.
@@ -21,21 +33,26 @@ A Streamlit-based chatbot application that helps university students and staff w
 
 1. Clone this repository
 2. Install the required packages:
-   ```
+
+   ```bash
    pip install streamlit openai python-dotenv pandas agno
    ```
+
 3. Create a `.env` file with your OpenAI API key:
-   ```
+
+   ```bash
    OPENAI_API_KEY=your_api_key_here
    ```
+
 4. Run the application:
-   ```
-   streamlit run university_portal_app.py
+
+   ```bash
+   streamlit run app.py
    ```
 
 ## Files
 
-- `university_portal_app.py`: Main Streamlit application
+- `app.py`: Main Streamlit application
 - `university_portal_faqs.csv`: CSV file containing frequently asked questions and answers
 - `unanswered_questions.csv`: CSV file for storing unanswered questions for human follow-up
 
